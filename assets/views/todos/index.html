@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="htmx-config" content='{"historyCacheSize": 0}'>
+  <title>Loco + htmx • TodoMVC</title>
+  <link rel="stylesheet" href="/static/css/todomvc-common.css">
+  <link rel="stylesheet" href="/static/css/todomvc-app.css">
+  <script src="/static/js/htmx.min.js" defer></script>
+</head>
+<body hx-boost="true">
+  <section class="todoapp">
+    <header class="header">
+      <h1>todos</h1>
+      <form hx-post="/todos"
+            hx-include="#current-filter"
+            hx-target="#todo-list-container"
+            hx-swap="outerHTML"
+            hx-on::after-request="if (event.detail.successful) this.reset()">
+        <input class="new-todo" name="title" placeholder="What needs to be done?" autocomplete="off" autofocus>
+      </form>
+    </header>
+    {% include "todos/_list.html" %}
+  </section>
+  <footer class="info">
+    <p>Double-click to edit a todo</p>
+    <p>Built with <a href="https://loco.rs">Loco</a> and <a href="https://htmx.org">htmx</a></p>
+    <p>Part of <a href="https://todomvc.com">TodoMVC</a></p>
+  </footer>
+</body>
+</html>

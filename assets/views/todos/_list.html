@@ -1,0 +1,52 @@
+{#- Re-rendered and swapped in after every change. The hidden filter input is
+    `hx-include`d by every mutation so the server re-renders the same view. -#}
+<div id="todo-list-container">
+  <input type="hidden" id="current-filter" name="filter" value="{{ list.filter }}">
+  {% if list.total_count > 0 %}
+  <section class="main" hx-include="#current-filter" hx-target="#todo-list-container" hx-swap="outerHTML">
+    <input id="toggle-all" class="toggle-all" type="checkbox" hx-post="/todos/toggle_all"
+           {% if list.active_count == 0 %}checked{% endif %}>
+    <label for="toggle-all">Mark all as complete</label>
+    <ul class="todo-list">
+      {% for todo in list.todos %}
+      <li{% if todo.completed %} class="completed"{% endif %}>
+        <div class="view">
+          <input class="toggle" type="checkbox" hx-post="/todos/{{ todo.id }}/toggle"
+                 {% if todo.completed %}checked{% endif %}>
+          <label hx-on:dblclick="
+            const li = this.closest('li');
+            const input = li.querySelector('.edit');
+            li.classList.add('editing');
+            input.focus();
+            input.setSelectionRange(input.value.length, input.value.length);">{{ todo.title }}</label>
+          <button class="destroy" hx-delete="/todos/{{ todo.id }}" aria-label="Delete"></button>
+        </div>
+        {#- Enter saves, Escape reverts; both leave edit mode via blur. Only a
+            real change hits the server, and an emptied title deletes the todo. -#}
+        <input class="edit" name="title" value="{{ todo.title }}" autocomplete="off"
+               hx-patch="/todos/{{ todo.id }}"
+               hx-trigger="blur[this.value.trim() !== this.defaultValue]"
+               hx-on:keydown="
+                 if (event.key === 'Enter') { this.blur(); }
+                 else if (event.key === 'Escape') { this.value = this.defaultValue; this.blur(); }"
+               hx-on:blur="
+                 if (this.value.trim() === this.defaultValue) { this.value = this.defaultValue; }
+                 this.closest('li').classList.remove('editing');">
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+  <footer class="footer">
+    <span class="todo-count"><strong>{{ list.active_count }}</strong> {% if list.active_count == 1 %}item{% else %}items{% endif %} left</span>
+    <ul class="filters">
+      <li><a href="/"{% if list.filter == "all" %} class="selected"{% endif %}>All</a></li>
+      <li><a href="/active"{% if list.filter == "active" %} class="selected"{% endif %}>Active</a></li>
+      <li><a href="/completed"{% if list.filter == "completed" %} class="selected"{% endif %}>Completed</a></li>
+    </ul>
+    {% if list.completed_count > 0 %}
+    <button class="clear-completed" hx-delete="/todos/completed" hx-include="#current-filter"
+            hx-target="#todo-list-container" hx-swap="outerHTML">Clear completed</button>
+    {% endif %}
+  </footer>
+  {% endif %}
+</div>
